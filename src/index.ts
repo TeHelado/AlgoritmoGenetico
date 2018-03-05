@@ -16,8 +16,8 @@ import * as chalk from 'chalk';
 //     ],
 //     max_generaciones: 10000,
 //     desviacion: 0.05,
-//     pMutacion: 0.8,
-//     pCruza: 0.5,
+//     pMutacion: 0.9,
+//     pCruza: 0.8,
 //     obj: 'max',
 //     funcion: (x) => {
 //         return Math.pow(x[0], 3) - 4 * Math.pow(x[0], 2) + x[0];
@@ -25,26 +25,26 @@ import * as chalk from 'chalk';
 // }
 
 //problema 6
-// const config = {
-//     individuos: 25,
-//     variables : [
-//         {rMin: -10, rMax: 10, size: 32},
-//         {rMin: -10, rMax: 10, size: 32}
-//     ],
-//     max_generaciones: 100000,
-//     desviacion: 0.5,
-//     pMutacion: 0.7,
-//     pCruza: 0.9,
-//     obj: 'min',
-//     funcion: (x) => {
-//         let r = Math.abs(x[0]*Math.sin(x[0]) + 0.1*x[0]);
+const config = {
+    individuos: 10,
+    variables : [
+        {rMin: -10, rMax: 10, size: 32},
+        {rMin: -10, rMax: 10, size: 32}
+    ],
+    max_generaciones: 100000,
+    desviacion: 0.5,
+    pMutacion: 0.4,
+    pCruza: 0.8,
+    obj: 'min',
+    funcion: (x) => {
+        let r = Math.abs(x[0]*Math.sin(x[0]) + 0.1*x[0]);
 
-//         for (let i = 1; i < config.variables.length; i++) {
-//             r += Math.abs(x[i]*Math.sin(x[i]) + 0.1*x[i]);
-//         }
-//         return r
-//     }
-// }
+        for (let i = 1; i < config.variables.length; i++) {
+            r += Math.abs(x[i]*Math.sin(x[i]) + 0.1*x[i]);
+        }
+        return r
+    }
+}
 
 // problema 7
 // const config = {
@@ -118,29 +118,29 @@ import * as chalk from 'chalk';
 // }
 
 // reinas
-const config = {
-    individuos: 10,
-    variables : [
-        {rMin: -8, rMax: 8, size: 32},
-        {rMin: -8, rMax: 8, size: 32},
-        {rMin: -8, rMax: 8, size: 32},
-        {rMin: -8, rMax: 8, size: 32},
-        {rMin: -8, rMax: 8, size: 32},
-        {rMin: -8, rMax: 8, size: 32},
-        {rMin: -8, rMax: 8, size: 32},
-        {rMin: -8, rMax: 8, size: 32}
-    ],
-    max_generaciones: 10000,
-    desviacion: 0.5,
-    pMutacion: 0.1,
-    pCruza: 0.9,
-    obj: 'max',
-    funcion: (x) => {
-        // console.log(x);
-        // throw 'x';
-        return _.sum(x);
-    }
-}
+// const config = {
+//     individuos: 10,
+//     variables : [
+//         {rMin: -8, rMax: 8, size: 8},
+//         {rMin: -8, rMax: 8, size: 8},
+//         {rMin: -8, rMax: 8, size: 8},
+//         {rMin: -8, rMax: 8, size: 8},
+//         {rMin: -8, rMax: 8, size: 8},
+//         {rMin: -8, rMax: 8, size: 8},
+//         {rMin: -8, rMax: 8, size: 8},
+//         {rMin: -8, rMax: 8, size: 8}
+//     ],
+//     max_generaciones: 50000,
+//     desviacion: 0.05,
+//     pMutacion: 0.1,
+//     pCruza: 0.9,
+//     obj: 'max',
+//     funcion: (x) => {
+//         // console.log(x);
+//         // throw 'x';
+//         return _.sum(x);
+//     }
+// }
 
 const g = new Genetico(config.individuos, config.variables, config.max_generaciones, config.desviacion, config.pMutacion, config.pCruza, config.obj, config.funcion);
 console.time("evaluar");
