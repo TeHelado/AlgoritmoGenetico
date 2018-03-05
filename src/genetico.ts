@@ -191,7 +191,7 @@ export class Genetico {
                 console.log(`\nMaximo de iteraciones alcanzado`);
             }
 
-            //Los mejores de la población y pasan a la sig generación automaticamente
+            //Los mejores de la población y pasan a la sig generación automaticamente 
             var poblacionNueva = this.mejores();
             
             //Toma los hijos haciendo las cruzas de los faltantes para completar la generación
@@ -202,8 +202,9 @@ export class Genetico {
                 hijos.push(cross[0]);
                 hijos.push(cross[1]);
             }
+
             var mutados = this.mutacion(hijos, this.pMutacion);
-            
+
             const faltantes = this.poblacion.length - poblacionNueva.length;
             for (var k = 0; k < faltantes; k++) {
                 poblacionNueva.push(mutados[k]);
@@ -211,9 +212,12 @@ export class Genetico {
 
             // console.log(_.map(poblacionNueva, (o) => o.cromosoma.length));
             // throw 'stop';
-
+            
             this.poblacion = this.calcData(_.cloneDeep(poblacionNueva));
+            console.time('mejores');
             this.desviacionActual = this.desviacionEstandar(_.map(this.poblacion, 'aptitud'));
+            console.timeEnd('mejores');
+            
         }
         return {
             poblacion: _.map(this.poblacion, 'cromosoma'),

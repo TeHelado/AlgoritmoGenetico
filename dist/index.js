@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const genetico_1 = require("./genetico");
 const _ = require("lodash");
+const chalk = require("chalk");
 // const config = {
 //     individuos: 10,
 //     variables : [
@@ -129,14 +130,15 @@ const config = {
         return _.sum(x);
     }
 };
-// const spinner = ora('Loading unicorns').start();
 const g = new genetico_1.Genetico(config.individuos, config.variables, config.max_generaciones, config.desviacion, config.pMutacion, config.pCruza, config.obj, config.funcion);
 console.time("evaluar");
 const r = g.solve();
-// spinner.stop();
 console.log(`Generación: ${r.generacion}\tDesviación: ${r.desviacion}`);
 console.log(`i\tfenotipo\t\taptitud`);
 for (let i = 0; i < config.individuos; i++) {
-    console.log(i + '  ', r.fenotipo[i] + '   ', r.aptitud[i]);
+    if (i < 3)
+        console.log(chalk.cyan(i) + '  ', chalk.green(r.fenotipo[i]) + '   ', chalk.green(r.aptitud[i]));
+    else
+        console.log(chalk.cyan(i) + '  ', (r.fenotipo[i]) + '   ', (r.aptitud[i]));
 }
 console.timeEnd("evaluar");
