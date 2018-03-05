@@ -16,13 +16,6 @@ export class Genetico {
     constructor(individuos: number, variables, max_generaciones: number, desviacion: number, pMutacion: number, pCruza: number, obj:string, funcion) {
 
         this.individuos = individuos;
-        // let step = 0;
-        // variables.forEach(e => {
-        //     e.start = step;
-        //     step += e.size;
-        //     e.end = step-1;
-        // });
-        // console.log(variables);
         this.variables = variables;
         this.max_generaciones = max_generaciones;
         this.desviacion = desviacion;
@@ -32,7 +25,7 @@ export class Genetico {
         this.funcion = funcion;
 
         this.desviacionActual = Infinity;
-        this.poblacion = this.generarPoblacion(individuos, _.sumBy(variables, 'size'));
+        this.poblacion = this.calcData(_.map(this.generarPoblacion(individuos, _.sumBy(variables, 'size')),(o) => {return {cromosoma: o} }));
     }
 
 
@@ -55,11 +48,10 @@ export class Genetico {
     //El fenotipo recibe el individio que es un renglon de la matriz de población inicial
     //Recibe rmin que es el rango minimo que puede tomar
     //Recibe rmax que es el rango máimo que puede tomar
-    private fenotipo(individuo, variables) {
-        
+    private fenotipo(individuo) {
         const fenotipos = [];
         const individuos = [];
-        variables.forEach(e => {
+        this.variables.forEach(e => {
             individuos.push(_.take(individuo, e.size));
             individuo = _.slice(individuo, e.size);
         });
@@ -72,7 +64,7 @@ export class Genetico {
             var digit = parseInt(individuo, 2);
 
             //Teniendo el decimal se aplica la formula para tener el valor en el rango
-            fenotipos.push(((variables[i].rMax - variables[i].rMin) / ((Math.pow(2, individuo.length)) - 1)) * digit + variables[i].rMin);
+            fenotipos.push(((this.variables[i].rMax - this.variables[i].rMin) / ((Math.pow(2, individuo.length)) - 1)) * digit + this.variables[i].rMin);
         });
         return fenotipos;
     }
@@ -84,58 +76,31 @@ export class Genetico {
 
     //funcion para tener a los individuos con mejor aptitud, saca al mejor 40% de los individios de la generación
     //recibe los rangos rmin y rmax para sacar las aptitudes
-    private mejores(poblacion, variables) {
-        //Se tiene una población temporal para poder evaluar los mejores sin repetirse
-        var poblacionTemporal = _.cloneDeep(poblacion);
-        var poblacionNueva = [];
-        //Se hace el ciclo hasta que se complete el 40% de los elementos
-        for (var i = 0; i < Math.ceil(poblacion.length * 0.3); i++) {
-            //Se toma al primero como el de la mejor aptitud para poder comparar después
-            var mejor = this.evaluarAptitud(this.fenotipo(poblacionTemporal[0], variables));
-            var posicion = 0;
-            //Se hace la comparación en otro ciclo
-            for (var j = 1; j < poblacionTemporal.length; j++) {
-                //Se evalua si es mejor el acutal o el que estaba como mejor
-                const apt = this.evaluarAptitud(this.fenotipo(poblacionTemporal[j],variables));
-                if ( this.obj === 'max' ? apt > mejor : apt < mejor) {
-                    //Si es mejor se cambia el nuevo mejor y se guarda la posicion
-                    mejor = this.evaluarAptitud(this.fenotipo(poblacionTemporal[j], variables));
-                    posicion = j;
-                }
-            }
-            //Terminando el ciclo se pone en la población nueva al mejor
-            poblacionNueva.push(poblacionTemporal[posicion]);
-            //Se quita de la población temporal para que en la siguiente iteración no lo revise
-            poblacionTemporal.splice(posicion, 1);
-        }
-        return poblacionNueva;
+    private mejores() {
+        return _.chain(this.poblacion).sortBy('aptitud').takeRight(3).value();
     }
 
     //Funcion de torneo
     //Recibe la población para hacer el random y selecciona al mejor, tomando en cuenta la maximización del problema
-    private torneo(poblacion, variables) {
+    private torneo() {
         //Saca los valores random para los individuos que competiran para cruza
-        var player1 = Math.floor((Math.random() * poblacion.length - 1) + 1);
-        var aptitud1 = this.evaluarAptitud(this.fenotipo(poblacion[player1], variables));
-        //console.log("index 1: " + player1 + " valor: " + poblacion[player1] + " aptitud: " + aptitud1);
-        var player2 = Math.floor((Math.random() * poblacion.length - 1) + 1);
-        var aptitud2 = this.evaluarAptitud(this.fenotipo(poblacion[player2], variables));
-        //console.log("index 2: " + player2 + " valor: " + poblacion[player2] + " aptitud: " + aptitud2);
-
+        
+        var player1 = Math.floor(Math.random() * (this.poblacion.length));
+        var player2 = Math.floor(Math.random() * (this.poblacion.length));
         //Saca la aptitud de los individuos para saber cual es mejor
-        if (aptitud1 > aptitud2) {
-            return poblacion[player1];
+        if (this.poblacion[player1].aptitud > this.poblacion[player2].aptitud) {
+            return this.poblacion[player1];
         } else {
-            return poblacion[player2];
+            return this.poblacion[player2];
         }
     }
 
     //Hace el cruce entre los 2 individuos
     //Recibe el padre1 que cruzará, el padre2 que cruzará y el punto de corte
-    private cruza(poblacion, variables, pCruza) {
+    private cruza(pCruza) {
 
-        var padre1 = this.torneo(poblacion, variables);
-        var padre2 = this.torneo(poblacion, variables);
+        var padre1 = _.cloneDeep(this.torneo());
+        var padre2 = _.cloneDeep(this.torneo());
 
         if (Math.random() > pCruza) {
             return [padre1, padre2];
@@ -144,24 +109,34 @@ export class Genetico {
         const fenotipos = [];
         const hijo1 = [];
         const hijo2 = [];
-        variables.forEach(e => {
-            hijo1.push(_.take(padre1, e.size));
-            padre1 = _.slice(padre1, e.size);
-            hijo2.push(_.take(padre2, e.size));
-            padre2 = _.slice(padre2, e.size);
+        this.variables.forEach(e => {
+            hijo1.push(_.take(padre1.cromosoma, e.size));
+            padre1.cromosoma = _.slice(padre1.cromosoma, e.size);
+            hijo2.push(_.take(padre2.cromosoma, e.size));
+            padre2.cromosoma = _.slice(padre2.cromosoma, e.size);
         });
 
         let tmp = [];
         let tmp2 = [];
         for (let i = 0; i < hijo1.length; i++) {
-            tmp = tmp.concat(hijo1[i].slice(0, Math.round(variables[i].size/2)));
-            tmp = tmp.concat(hijo2[i].slice(Math.round(variables[i].size/2), variables[i].size));
-
-            tmp2 = tmp.concat(hijo2[i].slice(0, Math.round(variables[i].size/2)));
-            tmp2 = tmp2.concat(hijo1[i].slice(Math.round(variables[i].size/2), variables[i].size));
+            tmp = tmp.concat(hijo1[i].slice(0, Math.round(this.variables[i].size/2)));
+            tmp = tmp.concat(hijo2[i].slice(Math.round(this.variables[i].size/2), this.variables[i].size));
+            
+            tmp2 = tmp2.concat(hijo2[i].slice(0, Math.round(this.variables[i].size/2)));
+            tmp2 = tmp2.concat(hijo1[i].slice(Math.round(this.variables[i].size/2), this.variables[i].size));
         }
 
-        return [tmp, tmp2];
+        let f = this.fenotipo(tmp);
+        padre1.cromosoma = tmp;
+        padre1.fenotipo = f;
+        padre1.aptitud = this.evaluarAptitud(f);
+
+        f = this.fenotipo(tmp2);
+        padre2.cromosoma = tmp2;
+        padre2.fenotipo = f;
+        padre2.aptitud = this.evaluarAptitud(f);
+
+        return [padre1, padre2];
     }
 
 
@@ -169,18 +144,13 @@ export class Genetico {
     private mutacion(hijos, pMutacion) {
         //Recorre a cada uno de los alelos de los hijos
         for (var i = 0; i < hijos.length; i++) {
-            for (var j = 0; j < hijos[i].length; j++) {
+            for (var j = 0; j < hijos[i].cromosoma.length; j++) {
                 //Si tienen un 1 se pasa a 0 y viceversa
                 if ( Math.random() < pMutacion) {
-                    if (hijos[i][j] == 0) {
-                        hijos[i][j] = 1;
-                    } else {
-                        hijos[i][j] = 0;
-                    }
+                    hijos[i].cromosoma[j] = (1 + hijos[i].cromosoma[j])%2;
                 }
             }
         }
-
         return hijos;
     }
 
@@ -222,62 +192,49 @@ export class Genetico {
             }
 
             //Los mejores de la población y pasan a la sig generación automaticamente
-            var poblacionNueva = this.mejores(this.poblacion, this.variables);
-
+            var poblacionNueva = this.mejores();
+            
             //Toma los hijos haciendo las cruzas de los faltantes para completar la generación
             var hijos = [];
             var cross;
             for (var i = 0; i < (Math.ceil(((this.poblacion.length - poblacionNueva.length) / 2))); i++) {
-                cross = this.cruza(this.poblacion, this.variables, this.pCruza);
+                cross = this.cruza(this.pCruza);
                 hijos.push(cross[0]);
                 hijos.push(cross[1]);
             }
-
             var mutados = this.mutacion(hijos, this.pMutacion);
-
+            
             const faltantes = this.poblacion.length - poblacionNueva.length;
             for (var k = 0; k < faltantes; k++) {
                 poblacionNueva.push(mutados[k]);
             }
 
-            this.poblacion = _.cloneDeep(poblacionNueva);
+            // console.log(_.map(poblacionNueva, (o) => o.cromosoma.length));
+            // throw 'stop';
 
-            var a = [];
-            this.poblacion.forEach(e => {
-                a.push(this.evaluarAptitud(this.fenotipo(e, this.variables)));
-            });
-            this.desviacionActual = this.desviacionEstandar(a);
+            this.poblacion = this.calcData(_.cloneDeep(poblacionNueva));
+            this.desviacionActual = this.desviacionEstandar(_.map(this.poblacion, 'aptitud'));
         }
         return {
-            poblacion: this.poblacion,
+            poblacion: _.map(this.poblacion, 'cromosoma'),
             desviacion: this.desviacionActual,
-            aptitud: this.getAptitud(),
-            fenotipo: this.getFenotipo(),
+            aptitud: _.map(this.poblacion, 'aptitud'),
+            fenotipo: _.map(this.poblacion, 'fenotipo'),
             generacion: generacion
         };
     }
 
-    private getAptitud() {
-        if (!this.poblacion) {
-            throw "No hay población.";
+    private calcData(poblacion) {
+        const poblacionNueva = [];
+        let f;
+        for (let i = 0; i < poblacion.length; i++) {
+            f = this.fenotipo(poblacion[i].cromosoma);
+            poblacionNueva.push({
+                cromosoma: poblacion[i].cromosoma,
+                fenotipo: f,
+                aptitud: this.evaluarAptitud(f)
+            });
         }
-        var a = [];
-            this.poblacion.forEach(e => {
-                a.push(this.evaluarAptitud(this.fenotipo(e, this.variables)));
-        });
-        return a;
+        return poblacionNueva;
     }
-
-    private getFenotipo() {
-        if (!this.poblacion) {
-            throw "No hay población.";
-        }
-        var a = [];
-            this.poblacion.forEach(e => {
-                a.push(this.fenotipo(e, this.variables));
-        });
-        return a;
-    }
-
-
 }
