@@ -12,7 +12,8 @@ class Genetico {
         this.pCruza = pCruza;
         this.obj = obj;
         this.funcion = funcion;
-        obj === 'min' ? this.mejores = () => _.chain(this.poblacion).sortBy('aptitud').value() : this.mejores = () => _.chain(this.poblacion).sortBy('aptitud').reverse().value();
+        // obj === 'min' ? this.mejores = () => _.chain(this.poblacion).sortBy('aptitud').value() : this.mejores = () => _.chain(this.poblacion).sortBy('aptitud').reverse().value();
+        obj === 'min' ? this.mejores = () => this.poblacion.sort((a, b) => a.aptitud - b.aptitud) : this.mejores = () => this.poblacion.sort((a, b) => b.aptitud - a.aptitud);
         this.desviacionActual = Infinity;
         for (let i = 0; i < individuos; i++) {
             this.poblacion.push({
@@ -67,8 +68,8 @@ class Genetico {
     torneo() {
         //Saca los valores random para los individuos que competiran para cruza
         var randomRange = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-        var player1 = randomRange(3, this.poblacion.length - 1);
-        var player2 = randomRange(3, this.poblacion.length - 1);
+        var player1 = randomRange(0, this.poblacion.length - 1);
+        var player2 = randomRange(0, this.poblacion.length - 1);
         //Saca la aptitud de los individuos para saber cual es mejor
         if (this.poblacion[player1].aptitud > this.poblacion[player2].aptitud) {
             return this.poblacion[player1];
@@ -80,12 +81,15 @@ class Genetico {
     //Hace el cruce entre los 2 individuos
     //Recibe el padre1 que cruzará, el padre2 que cruzará y el punto de corte
     cruza(pCruza) {
+        // var padre1 = _.cloneDeep(this.torneo());
+        // var padre2 = _.cloneDeep(this.torneo());
         var padre1 = this.torneo();
         var padre2 = this.torneo();
+        padre1 = { cromosoma: this.torneo().cromosoma.slice(), fenotipo: this.torneo().fenotipo.slice(), aptitud: this.torneo().aptitud };
+        padre2 = { cromosoma: this.torneo().cromosoma.slice(), fenotipo: this.torneo().fenotipo.slice(), aptitud: this.torneo().aptitud };
         if (Math.random() > pCruza) {
             return [padre1, padre2];
         }
-        const fenotipos = [];
         const hijo1 = [];
         const hijo2 = [];
         for (let i = 0, n = this.variables.length, j = 0; i < n; i++) {
@@ -102,9 +106,10 @@ class Genetico {
             tmp2 = tmp2.concat(hijo2[i].slice(0, Math.round(this.variables[i].size / 2)));
             tmp2 = tmp2.concat(hijo1[i].slice(Math.round(this.variables[i].size / 2), this.variables[i].size));
         }
-        const f = this.fenotipo(tmp);
-        const f2 = this.fenotipo(tmp2);
-        return [{ cromosoma: tmp, fenotipo: f, aptitud: this.evaluarAptitud(f) }, { cromosoma: tmp2, fenotipo: f2, aptitud: this.evaluarAptitud(f2) }];
+        // const f = this.fenotipo(tmp);
+        // const f2 = this.fenotipo(tmp2)
+        // return [{cromosoma: tmp, fenotipo: f, aptitud: this.evaluarAptitud(f)}, {cromosoma: tmp2, fenotipo: f2, aptitud: this.evaluarAptitud(f2)}];
+        return [{ cromosoma: tmp, fenotipo: undefined, aptitud: undefined }, { cromosoma: tmp2, fenotipo: undefined, aptitud: undefined }];
     }
     //Funcion para la mutación de los hijos en cada uno de sus alelos
     mutacion(hijos, pMutacion) {
@@ -116,6 +121,9 @@ class Genetico {
                     hijos[i].cromosoma[j] = (1 + hijos[i].cromosoma[j]) % 2;
                 }
             }
+            var f = this.fenotipo(hijos[i].cromosoma);
+            hijos[i].fenotipo = f;
+            hijos[i].aptitud = this.evaluarAptitud(f);
         }
         return hijos;
     }
@@ -143,15 +151,6 @@ class Genetico {
         //Los mejores de la población y pasan a la sig generación automaticamente 
         this.poblacion = this.mejores();
         for (generacion; generacion < this.max_generaciones && this.desviacionActual > this.desviacion; generacion++) {
-            // if (this.desviacionActual <= this.desviacion) {
-            //     console.log('\x1B[2J');
-            //     console.log(`Desviacion ${this.desviacionActual} alcanzada en ${generacion} iteraciones`);
-            //     break;
-            // }
-            // if (generacion == this.max_generaciones - 1) {
-            //     console.log('\x1B[2J');
-            //     console.log(`\nMaximo de iteraciones alcanzado`);
-            // }
             //Toma los hijos haciendo las cruzas de los faltantes para completar la generación
             var hijos = [];
             var cross;
@@ -161,11 +160,12 @@ class Genetico {
                 hijos.push(cross[1]);
             }
             var mutados = this.mutacion(hijos, this.pMutacion);
+            // var mutados = this.mutacion(_.takeRight(this.poblacion, this.poblacion.length-3), this.pMutacion);
             for (var k = 3; k < this.poblacion.length; k++) {
                 this.poblacion[k] = mutados[k - 3];
             }
             // console.time('mejores');
-            this.calcData(this.poblacion);
+            // this.calcData(this.poblacion);
             this.poblacion = this.mejores();
             // console.timeEnd('mejores');
             this.desviacionActual = this.desviacionEstandar(_.map(this.poblacion, 'aptitud'));

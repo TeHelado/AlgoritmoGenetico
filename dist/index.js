@@ -2,6 +2,13 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const genetico_1 = require("./genetico");
 const _ = require("lodash");
+const vars = (min, max, size, times) => {
+    const arr = [];
+    for (let i = 0; i < times; i++) {
+        arr.push({ rMin: min, rMax: max, size: size });
+    }
+    return arr;
+};
 // const config = {
 //     individuos: 10,
 //     variables : [
@@ -108,22 +115,11 @@ const _ = require("lodash");
 // reinas
 const config = {
     individuos: 10,
-    variables: [
-        { rMin: 1, rMax: 10, size: 8 },
-        { rMin: 1, rMax: 10, size: 8 },
-        { rMin: 1, rMax: 10, size: 8 },
-        { rMin: 1, rMax: 10, size: 8 },
-        { rMin: 1, rMax: 10, size: 8 },
-        { rMin: 1, rMax: 10, size: 8 },
-        { rMin: 1, rMax: 10, size: 8 },
-        { rMin: 1, rMax: 10, size: 8 },
-        { rMin: 1, rMax: 10, size: 8 },
-        { rMin: 1, rMax: 10, size: 8 }
-    ],
+    variables: vars(1, 8, 10, 8),
     max_generaciones: 30000,
     desviacion: 0.05,
-    pMutacion: 0.6,
-    pCruza: 0.9,
+    pMutacion: 0.9,
+    pCruza: 0.2,
     obj: 'min',
     funcion: (x) => {
         // console.log(_.sortedUniqBy(x, Math.floor));
