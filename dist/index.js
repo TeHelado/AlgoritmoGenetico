@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const genetico_1 = require("./genetico");
-const chalk = require("chalk");
+const _ = require("lodash");
 // const config = {
 //     individuos: 10,
 //     variables : [
@@ -12,7 +12,7 @@ const chalk = require("chalk");
 //         }
 //     ],
 //     max_generaciones: 10000,
-//     desviacion: 0.05,
+//     desviacion: 0.000000005,
 //     pMutacion: 0.9,
 //     pCruza: 0.8,
 //     obj: 'max',
@@ -21,25 +21,25 @@ const chalk = require("chalk");
 //     }
 // }
 //problema 6
-const config = {
-    individuos: 10,
-    variables: [
-        { rMin: -10, rMax: 10, size: 32 },
-        { rMin: -10, rMax: 10, size: 32 }
-    ],
-    max_generaciones: 100000,
-    desviacion: 0.5,
-    pMutacion: 0.4,
-    pCruza: 0.8,
-    obj: 'min',
-    funcion: (x) => {
-        let r = Math.abs(x[0] * Math.sin(x[0]) + 0.1 * x[0]);
-        for (let i = 1; i < config.variables.length; i++) {
-            r += Math.abs(x[i] * Math.sin(x[i]) + 0.1 * x[i]);
-        }
-        return r;
-    }
-};
+// const config = {
+//     individuos: 10,
+//     variables : [
+//         {rMin: -10, rMax: 10, size: 32},
+//         {rMin: -10, rMax: 10, size: 32}
+//     ],
+//     max_generaciones: 100000,
+//     desviacion: 0.5,
+//     pMutacion: 0.4,
+//     pCruza: 0.8,
+//     obj: 'min',
+//     funcion: (x) => {
+//         let r = Math.abs(x[0]*Math.sin(x[0]) + 0.1*x[0]);
+//         for (let i = 1; i < config.variables.length; i++) {
+//             r += Math.abs(x[i]*Math.sin(x[i]) + 0.1*x[i]);
+//         }
+//         return r
+//     }
+// }
 // problema 7
 // const config = {
 //     individuos: 20,
@@ -106,29 +106,56 @@ const config = {
 //     }
 // }
 // reinas
-// const config = {
-//     individuos: 10,
-//     variables : [
-//         {rMin: -8, rMax: 8, size: 8},
-//         {rMin: -8, rMax: 8, size: 8},
-//         {rMin: -8, rMax: 8, size: 8},
-//         {rMin: -8, rMax: 8, size: 8},
-//         {rMin: -8, rMax: 8, size: 8},
-//         {rMin: -8, rMax: 8, size: 8},
-//         {rMin: -8, rMax: 8, size: 8},
-//         {rMin: -8, rMax: 8, size: 8}
-//     ],
-//     max_generaciones: 50000,
-//     desviacion: 0.05,
-//     pMutacion: 0.1,
-//     pCruza: 0.9,
-//     obj: 'max',
-//     funcion: (x) => {
-//         // console.log(x);
-//         // throw 'x';
-//         return _.sum(x);
-//     }
-// }
+const config = {
+    individuos: 10,
+    variables: [
+        { rMin: 1, rMax: 10, size: 8 },
+        { rMin: 1, rMax: 10, size: 8 },
+        { rMin: 1, rMax: 10, size: 8 },
+        { rMin: 1, rMax: 10, size: 8 },
+        { rMin: 1, rMax: 10, size: 8 },
+        { rMin: 1, rMax: 10, size: 8 },
+        { rMin: 1, rMax: 10, size: 8 },
+        { rMin: 1, rMax: 10, size: 8 },
+        { rMin: 1, rMax: 10, size: 8 },
+        { rMin: 1, rMax: 10, size: 8 }
+    ],
+    max_generaciones: 30000,
+    desviacion: 0.05,
+    pMutacion: 0.6,
+    pCruza: 0.9,
+    obj: 'min',
+    funcion: (x) => {
+        // console.log(_.sortedUniqBy(x, Math.floor));
+        const col = _.chain(x).map((o) => Math.round(o)).uniq().value();
+        if (col.length < x.length) {
+            return x.length - col.length;
+        }
+        const pendiente = (x1, y1, x2, y2) => (y2 - y1) / (x2 - x1);
+        for (let r = 0; r < x.length; r++) {
+            for (let c = r + 1; c < x.length; c++) {
+                if (Math.abs(pendiente(r, col[r], c, col[c])) === 1) {
+                    return 1;
+                }
+            }
+        }
+        return 0;
+        /*
+            6.764705882352941,5.117647058823529,3.003921568627451,1.4392156862745098,6.435294117647059,8,2.4,3.992156862745098
+            7 5 3 1 6 8 2 4
+
+            5.0627450980392155,2.6470588235294117,1.384313725490196,6.737254901960784,1.603921568627451,7.5058823529411764,6.352941176470588,4.486274509803922
+            5 3 1 7 2 8 6 4
+
+            4.403921568627451,6.243137254901961,1.3019607843137255,4.733333333333333,1.5490196078431373,7.890196078431372,2.674509803921569,7.12156862745098
+            4 6 1 5 2 8 3 7
+            
+            10 reinas
+             8.341176470588234,3.188235294117647,4.705882352941177,2.094117647058823,9.011764705882353,6.223529411764706,9.752941176470587,7.458823529411765,4.317647058823529,1.4941176470588236
+             8 3 5 2 9 6 10 7 4 1
+        */
+    }
+};
 const g = new genetico_1.Genetico(config.individuos, config.variables, config.max_generaciones, config.desviacion, config.pMutacion, config.pCruza, config.obj, config.funcion);
 console.time("evaluar");
 const r = g.solve();
@@ -136,8 +163,8 @@ console.log(`Generación: ${r.generacion}\tDesviación: ${r.desviacion}`);
 console.log(`i\tfenotipo\t\taptitud`);
 for (let i = 0; i < config.individuos; i++) {
     if (i < 3)
-        console.log(chalk.cyan(i) + '  ', chalk.green(r.fenotipo[i]) + '   ', chalk.green(r.aptitud[i]));
+        console.log((i) + '  ', (r.fenotipo[i]) + '   ', (r.aptitud[i]));
     else
-        console.log(chalk.cyan(i) + '  ', (r.fenotipo[i]) + '   ', (r.aptitud[i]));
+        console.log((i) + '  ', (r.fenotipo[i]) + '   ', (r.aptitud[i]));
 }
 console.timeEnd("evaluar");
